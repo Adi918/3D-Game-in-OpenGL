@@ -22,7 +22,6 @@ GLFWwindow* window; // window desciptor/handle
 
 int width = 600;
 int height = 600;
-bool LevelComplete=false;
 
 float camera_rotation_angle = 60;
 float camera_rotation_angle1 = 0;
@@ -1002,7 +1001,6 @@ void draw ()
 
 	if ( time2 - time1 > 1 && Block.fallingstatus )
 	{
-
 		if ( Block.fragilefall )
 		{
 			Block.fragilefall = false;
@@ -1026,22 +1024,11 @@ void draw ()
 		}
 	}
 
-	if ( time2 - time1 > 1 && LevelComplete )
+	if ( Level == 0 || Block.state == stand && Level1[10*(Level-1)+Block.y1][Block.x1] == 3 )
 	{
+		time1 = glfwGetTime();
 		Level++;
-		LevelComplete = false;
-	}
-
-	if ( Level == 0 )
-		Level++;
-
-	if ( Block.state == stand && Level1[10*(Level-1)+Block.y1][Block.x1] == 3 )
-	{
-		if ( !LevelComplete )
-			time1 = glfwGetTime();
-		BlockFall();
-		LevelComplete = true;
-		if ( Level == 1 && time2-time1 > 1 )
+		if ( Level == 1 )
 		{
 			t = 0;
 			xi = 3;
@@ -1049,7 +1036,7 @@ void draw ()
 			ResetBlock();
 			BlockFall();
 		}
-		if ( Level == 2 && time2-time1 > 1 )
+		if ( Level == 2 )
 		{
 			t = 0;
 			xi = 2;
