@@ -80,6 +80,7 @@ typedef struct Block
 	float up;
 	float down;
 	bool roundstart;
+	bool roundfinish;
 	bool fragilefall;
 }block;
 
@@ -906,6 +907,7 @@ void CheckBLockPos ( bool var )
 
 void ResetBlock ()
 {
+	Block.roundfinish = false;
 	Block.fallingstatus = false;
 	Block.x1 = xi;
 	Block.x2 = xi;
@@ -919,7 +921,7 @@ float t = 0;
 void BlockFall ()
 {
 	Block.roundstart = true;
-	if ( 6 *cos(1*t) > .1 )
+	if ( 6 *cos(1*t) > 0.1 )
 		Block.T[3][2] = 4*cos(1*t);
 	else
 		Block.T[3][2] = 0;
@@ -1024,27 +1026,44 @@ void draw ()
 		}
 	}
 
+	if ( Level == 0 )
+		Level++;
+
+	cout << Block.T[3][2] << endl;
+
 	if ( Level == 0 || Block.state == stand && Level1[10*(Level-1)+Block.y1][Block.x1] == 3 )
 	{
-		time1 = glfwGetTime();
-		Level++;
-		if ( Level == 1 )
+		if ( !Block.roundfinish )
 		{
-			t = 0;
-			xi = 3;
-			yi = 3;
-			ResetBlock();
-			BlockFall();
+			time1 = glfwGetTime();
+			Block.roundfinish = true;
+			CheckBLockPos(true);
 		}
-		if ( Level == 2 )
+		if ( time2-time1 > 0.8 )
 		{
-			t = 0;
-			xi = 2;
-			yi = 5;
-			level = 2;
-			initGL(window,width,height);
-			ResetBlock();
-			BlockFall();
+			Level++;
+			if ( Level == 1 )
+			{
+				Level = 2;
+				t = 0;
+				xi = 3;
+				yi = 3;
+				Block.roundfinish = false;
+				time1 = glfwGetTime();
+				ResetBlock();
+				BlockFall();
+			}
+			if ( Level == 2 )
+			{
+				t = 0;
+				xi = 2;
+				yi = 5;
+				level = 2;
+				time1 = glfwGetTime();
+				initGL(window,width,height);
+				ResetBlock();
+				BlockFall();
+			}
 		}
 	}
 
@@ -1059,7 +1078,7 @@ void draw ()
 		BlockFall(14*Block.y1+Block.x1);
 
 	Matrices.model = glm::mat4(1.0f);
-	translateBlock = glm::translate(glm::vec3(x+0.52*(Block.x1-7),y-0.52*(Block.y1-5),Block.z-(Block.fallingstatus*Block.speed*(time2-time1))));
+	translateBlock = glm::translate(glm::vec3(x+0.52*(Block.x1-7),y-0.52*(Block.y1-5),Block.z-(Block.fallingstatus*Block.speed*(time2-time1))-(Block.roundfinish*Block.speed*(time2-time1))));
 	glm::mat4 rotateRectanglex = glm::rotate((float)(x_rotate*90*M_PI/180), glm::vec3(0,1,0)); // rotate about vector (-1,1,1)
 	glm::mat4 rotateRectangley = glm::rotate((float)(-y_rotate*90*M_PI/180), glm::vec3(1,0,0)); // rotate about vector (-1,1,1)
 	glm::mat4 rotateRectanglez = glm::rotate((float)(z_rotate*90*M_PI/180), glm::vec3(0,0,1));
