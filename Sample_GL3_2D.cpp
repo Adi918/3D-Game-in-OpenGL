@@ -62,9 +62,13 @@ typedef struct Tiles
 {
 	struct VAO* tile;
 	glm::mat4 T;
+	glm::mat4 T1;
+	float x;
+	float y;
 	int type;
 	float speed;
 	bool state;
+	float depth;
 }tiles;
 
 typedef struct Block
@@ -88,6 +92,15 @@ typedef struct Block
 	bool fragilefall;
 }block;
 
+// 3rd cam view
+bool person=false;
+int Up = 0;
+int Down = 0;
+int Left = 0;
+int Right = 1;
+
+bool cameracontrol=false;
+
 block Block;
 tiles Tile[140];
 
@@ -107,8 +120,8 @@ int Level1[30][14] = {
 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 
-	0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 
+	0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 
+	0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 
 	0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 3, 1, 0, 0, 
 	0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 
 	0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -117,12 +130,12 @@ int Level1[30][14] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 
-	0, 2, 2, 2, 2, 0, 0, 1, 3, 1, 0, 0, 0, 0, 
-	0, 2, 1, 4, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
-	0, 2, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
-	0, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 
+	0, 0, 0, 2, 2, 2, 2, 0, 0, 1, 3, 1, 0, 0, 
+	0, 0, 0, 2, 1, 4, 1, 0, 0, 1, 1, 1, 0, 0, 
+	0, 0, 0, 2, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 
+	0, 0, 0, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -303,6 +316,112 @@ float rectangle_rot_dir = 1;
 bool triangle_rot_status = true;
 bool rectangle_rot_status = true;
 
+void up ()
+{
+	Left = 0;
+	Right = 0;
+	Up = 1;
+	Down = 0;
+	if ( Block.state == stand )
+	{
+		Block.state = vertical;
+		Block.y1 -= 1;
+		Block.y2 -= 2;
+	}
+	else if ( Block.state == vertical )
+	{
+		Block.state = stand;
+		Block.y1 -= 2;
+		Block.y2 -= 1;
+	}
+	else
+	{
+		Block.y1 -= 1;
+		Block.y2 -= 1;
+	}
+	visibility = true;
+}
+
+void down ()
+{
+	Left = 0;
+	Right = 0;
+	Up = 0;
+	Down = 1;
+	if ( Block.state == stand )
+	{
+		Block.state = vertical;
+		Block.y1 += 2;
+		Block.y2 += 1;
+	}
+	else if ( Block.state == vertical )
+	{
+		Block.state = stand;
+		Block.y1 += 1;
+		Block.y2 += 2;
+	}
+	else
+	{
+		Block.y1 += 1;
+		Block.y2 += 1;
+	}
+	visibility = true;
+}
+
+void left ()
+{
+	Left = 1;
+	Right = 0;
+	Up = 0;
+	Down = 0;
+	if ( Block.state == stand )
+	{
+		Block.state = horizontal;
+		Block.x1 -= 2;
+		Block.x2 -= 1;
+	}
+	else if ( Block.state == horizontal )
+	{
+		Block.state = stand;
+		Block.x1 -= 1;
+		Block.x2 -= 2;
+	}
+	else
+	{
+		Block.x1 -= 1;
+		Block.x2 -= 1;
+	}
+	visibility = true;
+
+}
+
+void right ()
+{
+	Left = 0;
+	Right = 1;
+	Up = 0;
+	Down = 0;
+	if ( Block.state == stand )
+	{
+		Block.state = horizontal;
+		Block.x1 += 1;
+		Block.x2 += 2;
+	}
+	else if ( Block.state == horizontal )
+	{
+		Block.state = stand;
+		Block.x1 += 2;
+		Block.x2 += 1;
+	}
+	else
+	{
+		Block.x1 += 1;
+		Block.x2 += 1;
+	}
+	visibility = true;
+
+}
+
 /* Executed when a regular key is pressed/released/held-down */
 /* Prefered for Keyboard events */
 void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -312,84 +431,64 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 	if (action == GLFW_RELEASE && !Block.fallingstatus && !Block.roundstart ) {
 		switch (key) {
 			case GLFW_KEY_UP:
-				if ( Block.state == stand )
-				{
-					Block.state = vertical;
-					Block.y1 -= 1;
-					Block.y2 -= 2;
-				}
-				else if ( Block.state == vertical )
-				{
-					Block.state = stand;
-					Block.y1 -= 2;
-					Block.y2 -= 1;
-				}
+				if ( !person )
+					up();
 				else
 				{
-					Block.y1 -= 1;
-					Block.y2 -= 1;
+					if ( Right == 1 )
+						right();
+					else if ( Left == 1 )
+						left();
+					else if ( Down == 1 )
+						down();
+					else
+						up();
 				}
-				visibility = true;
 				break;
 			case GLFW_KEY_DOWN:
-				if ( Block.state == stand )
-				{
-					Block.state = vertical;
-					Block.y1 += 2;
-					Block.y2 += 1;
-				}
-				else if ( Block.state == vertical )
-				{
-					Block.state = stand;
-					Block.y1 += 1;
-					Block.y2 += 2;
-				}
+				if ( !person )
+					down();
 				else
 				{
-					Block.y1 += 1;
-					Block.y2 += 1;
+					if ( Right )
+						left();
+					else if ( Left )
+						right();
+					else if ( Down )
+						up();
+					else
+						down();
 				}
-				visibility = true;
 				break;
 			case GLFW_KEY_LEFT:
-				if ( Block.state == stand )
-				{
-					Block.state = horizontal;
-					Block.x1 -= 2;
-					Block.x2 -= 1;
-				}
-				else if ( Block.state == horizontal )
-				{
-					Block.state = stand;
-					Block.x1 -= 1;
-					Block.x2 -= 2;
-				}
+				if ( !person )
+					left();
 				else
 				{
-					Block.x1 -= 1;
-					Block.x2 -= 1;
+					if ( Right )
+						up();
+					else if ( Left )
+						down();
+					else if ( Down )
+						right();
+					else
+						left();
 				}
-				visibility = true;
 				break;
 			case GLFW_KEY_RIGHT:
-				if ( Block.state == stand )
-				{
-					Block.state = horizontal;
-					Block.x1 += 1;
-					Block.x2 += 2;
-				}
-				else if ( Block.state == horizontal )
-				{
-					Block.state = stand;
-					Block.x1 += 2;
-					Block.x2 += 1;
-				}
+				if ( !person )
+					right();
 				else
 				{
-					Block.x1 += 1;
-					Block.x2 += 1;
+					if ( Right )
+						down();
+					else if ( Left )
+						up();
+					else if ( Down )
+						left();
+					else
+						right();
 				}
-				visibility = true;
 				break;
 			case GLFW_KEY_C:
 				cameracount += 1;
@@ -418,6 +517,14 @@ void keyboardChar (GLFWwindow* window, unsigned int key)
 		case 'q':
 			quit(window);
 			break;
+		case 'a':
+		case 'A':
+			camera_rotation_angle -= 2;
+			break;
+		case 'd':
+		case 'D':
+			camera_rotation_angle += 2;
+			break;
 		default:
 			break;
 	}
@@ -430,47 +537,39 @@ void mouseButton (GLFWwindow* window, int button, int action, int mods)
 		case GLFW_MOUSE_BUTTON_LEFT:
 			if (action == GLFW_RELEASE)
 			{
-				if ( Block.state == stand )
-				{
-					Block.state = horizontal;
-					Block.x1 -= 2;
-					Block.x2 -= 1;
-				}
-				else if ( Block.state == horizontal )
-				{
-					Block.state = stand;
-					Block.x1 -= 1;
-					Block.x2 -= 2;
-				}
+				if ( !person )
+					left();
 				else
 				{
-					Block.x1 -= 1;
-					Block.x2 -= 1;
+					if ( Right )
+						up();
+					else if ( Left )
+						down();
+					else if ( Down )
+						right();
+					else
+						left();
 				}
 			}
 			break;
 		case GLFW_MOUSE_BUTTON_RIGHT:
 			if (action == GLFW_RELEASE)
 			{
-				if ( Block.state == stand )
-				{
-					Block.state = horizontal;
-					Block.x1 += 1;
-					Block.x2 += 2;
-				}
-				else if ( Block.state == horizontal )
-				{
-					Block.state = stand;
-					Block.x1 += 2;
-					Block.x2 += 1;
-				}
+				if ( !person )
+					right();
 				else
 				{
-					Block.x1 += 1;
-					Block.x2 += 1;
+					if ( Right )
+						down();
+					else if ( Left )
+						up();
+					else if ( Down )
+						left();
+					else
+						right();
 				}
+			}
 			break;
-		}
 		default:
 			break;
 	}
@@ -481,42 +580,34 @@ void scroll_callback ( GLFWwindow* window, double xoffset, double yoffset )
 {
 	if ( yoffset > 0 )
 	{
-		if ( Block.state == stand )
-		{
-			Block.state = vertical;
-			Block.y1 -= 1;
-			Block.y2 -= 2;
-		}
-		else if ( Block.state == vertical )
-		{
-			Block.state = stand;
-			Block.y1 -= 2;
-			Block.y2 -= 1;
-		}
+		if ( !person )
+			up();
 		else
 		{
-			Block.y1 -= 1;
-			Block.y2 -= 1;
+			if ( Right == 1 )
+				right();
+			else if ( Left == 1 )
+				left();
+			else if ( Down == 1 )
+				down();
+			else
+				up();
 		}
 	}
 	else if ( yoffset < 0 )
 	{
-		if ( Block.state == stand )
-		{
-			Block.state = vertical;
-			Block.y1 += 2;
-			Block.y2 += 1;
-		}
-		else if ( Block.state == vertical )
-		{
-			Block.state = stand;
-			Block.y1 += 1;
-			Block.y2 += 2;
-		}
+		if ( !person )
+			down();
 		else
 		{
-			Block.y1 += 1;
-			Block.y2 += 1;
+			if ( Right )
+				left();
+			else if ( Left )
+				right();
+			else if ( Down )
+				up();
+			else
+				down();
 		}
 	}
 	CheckBLockPos(false);
@@ -603,43 +694,10 @@ void createRectangle (float width,float length, float height)
 		width/2, -length/2, height/2,
 		width/2, length/2, height/2,
 		-width/2, length/2, height/2,
-
-
 	};
 
 	static const GLfloat color_buffer_data [] = {
-		0.4,0.5,0.5,
-		0.4,0.5,0.5,
-		0.4,0.5,0.5,
-
-		0.4,0.5,0.5,
-		0.4,0.5,0.5,
-		0.4,0.5,0.5,
-
-		0.2,0.4,0.6,
-		0.2,0.4,0.6,
-		0.2,0.4,0.6,
-
-		0.2,0.4,0.6,
-		0.2,0.4,0.6,
-		0.2,0.4,0.6,
-
-		0.1,0.2,0.6,
-		0.1,0.2,0.6,
-		0.1,0.2,0.6,
-
-		0.1,0.2,0.6,
-		0.1,0.2,0.6,
-		0.1,0.2,0.6,
-
-		0.4,0.4,0.4,
-		0.4,0.4,0.4,
-		0.4,0.4,0.4,
-
-		0.4,0.4,0.4,
-		0.4,0.4,0.4,
-		0.4,0.4,0.4,
-
+		// front
 		0.1,0.7,0.7,
 		0.1,0.7,0.7,
 		0.1,0.7,0.7,
@@ -648,17 +706,62 @@ void createRectangle (float width,float length, float height)
 		0.1,0.7,0.7,
 		0.1,0.7,0.7,
 
-		0.2,0.1,0.7,
-		0.2,0.1,0.7,
-		0.2,0.1,0.7,
+		//back
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
 
-		0.2,0.1,0.7,
-		0.2,0.1,0.7,
-		0.2,0.1,0.7,
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+
+		//left
+		0.1,0.2,0.6,
+		0.1,0.2,0.6,
+		0.1,0.2,0.6,
+
+		0.1,0.2,0.6,
+		0.1,0.2,0.6,
+		0.1,0.2,0.6,
+
+		//right
+		0.1,0.2,0.6,
+		0.1,0.2,0.6,
+		0.1,0.2,0.6,
+
+		0.1,0.2,0.6,
+		0.1,0.2,0.6,
+		0.1,0.2,0.6,
+
+		// base
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+
+		// top
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+		0.1,0.7,0.7,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
 	};
 
 	//create3DObject creates and returns a handle to a VAO that can be used later
-	Block.block = create3DObject(GL_TRIANGLES, 36, vertex_buffer_data, color_buffer_data, GL_FILL);
+	Block.block = create3DObject(GL_TRIANGLES, 42, vertex_buffer_data, color_buffer_data, GL_FILL);
 }
 
 VAO* createBoard (float width,float length, float height,float r, float g, float b, float type)
@@ -946,7 +1049,7 @@ VAO* createSwitch (float width,float length, float height,float r, float g, floa
 		-width/2+0.05,length/2,height/2+0.01,
 		width/2,-length/2+0.05,height/2+0.01,
 		width/2-0.05,-length/2,height/2+0.01,
-		
+
 		-width/2+0.05,length/2,height/2+0.01,
 		width/2-0.05,-length/2,height/2+0.01,
 		-width/2,length/2-0.05,height/2+0.01,
@@ -1039,6 +1142,7 @@ void CheckBLockPos ( bool var )
 
 void ResetBlock ()
 {
+	Tile[14*Block.y1+Block.x1].state = false;
 	Block.roundfinish = false;
 	Block.fallingstatus = false;
 	Block.x1 = xi;
@@ -1046,8 +1150,9 @@ void ResetBlock ()
 	Block.y1 = yi;
 	Block.y2 = yi;
 	Block.state = stand;
-	Level1[24][5] = 0;
-	Level1[24][6] = 0;
+	Level1[24][7] = 0;
+	Level1[24][8] = 0;
+	activeswitch = false;
 }
 
 float t = 0;
@@ -1056,9 +1161,25 @@ void BlockFall ()
 {
 	Block.roundstart = true;
 	if ( 6 *cos(1*t) > 0.1 )
+	{
 		Block.T[3][2] = 4*cos(1*t);
+		for ( int i = 0 ; i < 100 ; i++ )
+		{
+			Tile[i].T[3][2] = Tile[i].depth*cos(t);
+			Tile[i].T1[3][0] = Tile[i].x*cos(t);
+			Tile[i].T1[3][1] = Tile[i].y*cos(t);
+		}
+	}
 	else
+	{
 		Block.T[3][2] = 0;
+		for ( int i = 0 ; i < 100 ; i++ )
+		{
+			Tile[i].T[3][2] = 0;
+			Tile[i].T1[3][0] = 0;
+			Tile[i].T1[3][1] = 0;
+		}
+	}
 }
 
 float rectangle_rotation = 0;
@@ -1073,7 +1194,6 @@ void BlockFall ( int i )
 /* Edit this function according to your assignment */
 void draw ()
 {
-	camera_rotation_angle++;
 	t+=0.05;
 	time2 = glfwGetTime();
 	float x_rotate=0, y_rotate=0, z_rotate=0;
@@ -1106,27 +1226,30 @@ void draw ()
 	// Eye - Location of camera. Don't change unless you are sure!!
 
 	// Tower View
-	if ( cameracount%4 == 0 )
+	if ( cameracount%5 == 0 )
 	{
+		person = false;
 		glm::vec3 eye ( -4, -4, 4);
 		glm::vec3 target (0, 0, 0);
 		Matrices.view = glm::lookAt(eye, target, up);
 		Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
 	}
 	// Helicopter View
-	else if ( cameracount%4 == 1 )
+	else if ( cameracount%5 == 1 )
 	{
-		float r = 4;
+		person = false;
+		float r = 8;
 		float angle = 40;
 		glm::vec3 eye (r*sin(angle*M_PI/180)*cos(camera_rotation_angle*M_PI/180),r*sin(angle*M_PI/180)*sin(camera_rotation_angle*M_PI/180),r*cos(angle*M_PI/180));
 		glm::vec3 target (0, 0, 0);
 		Matrices.view = glm::lookAt(eye, target, up);
-//		Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
+		//		Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
 		Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
 	}
 	// Top View
-	else if ( cameracount%4 == 2 )
+	else if ( cameracount%5 == 2 )
 	{
+		person = false;
 		glm::vec3 eye ( 0, 0, 3);
 		glm::vec3 up (0,1,0);
 		glm::vec3 target (0, 0, 0);
@@ -1135,14 +1258,63 @@ void draw ()
 
 	}
 	// 3rd Person
-	else if ( cameracount%4 == 3 )
+	else if ( cameracount%5 == 3 )
 	{
+		person = true;
 		glm::vec3 eye (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5),(Block.fallingstatus*Block.speed*(time2-time1))-(Block.roundfinish*Block.speed*(time2-time1))+3);
-		glm::vec3 target (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5)+2, 0);
-		Matrices.view = glm::lookAt(eye, target, up);
-//		Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
+		if ( Right == 1 )
+		{
+			glm::vec3 target (x+0.52*(Block.x1-7)+2,y-0.52*(Block.y1-5), 0);
+			Matrices.view = glm::lookAt(eye, target, up);
+		}
+		else if ( Left == 1 )
+		{
+			glm::vec3 target (x+0.52*(Block.x1-7)-2,y-0.52*(Block.y1-5), 0);
+			Matrices.view = glm::lookAt(eye, target, up);
+		}
+		else if ( Up == 1 )
+		{
+			glm::vec3 target (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5)+2, 0);
+			Matrices.view = glm::lookAt(eye, target, up);
+		}
+		else
+		{
+			glm::vec3 target (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5)-2, 0);
+			Matrices.view = glm::lookAt(eye, target, up);
+		}
+		//		Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
 		Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
 
+	}
+	else if ( cameracount%5 == 4 )
+	{
+		person = true;
+		if ( Right == 1 )
+		{
+			glm::vec3 eye (x+0.52*(Block.x1-7)+0.5,y-0.52*(Block.y1-5),(Block.fallingstatus*Block.speed*(time2-time1))-(Block.roundfinish*Block.speed*(time2-time1))+1);
+			glm::vec3 target (x+0.52*(Block.x1-7)+2,y-0.52*(Block.y1-5), 0);
+			Matrices.view = glm::lookAt(eye, target, up);
+		}
+		else if ( Left == 1 )
+		{
+			glm::vec3 eye (x+0.52*(Block.x1-7)-0.5,y-0.52*(Block.y1-5),(Block.fallingstatus*Block.speed*(time2-time1))-(Block.roundfinish*Block.speed*(time2-time1))+1);
+			glm::vec3 target (x+0.52*(Block.x1-7)-2,y-0.52*(Block.y1-5), 0);
+			Matrices.view = glm::lookAt(eye, target, up);
+		}
+		else if ( Up == 1 )
+		{
+			glm::vec3 eye (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5)+1,(Block.fallingstatus*Block.speed*(time2-time1))-(Block.roundfinish*Block.speed*(time2-time1))+1);
+			glm::vec3 target (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5)+2, 0);
+			Matrices.view = glm::lookAt(eye, target, up);
+		}
+		else
+		{
+			glm::vec3 eye (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5)-1,(Block.fallingstatus*Block.speed*(time2-time1))-(Block.roundfinish*Block.speed*(time2-time1))+1);
+			glm::vec3 target (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5)-2, 0);
+			Matrices.view = glm::lookAt(eye, target, up);
+		}
+		//		Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
+		Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);		
 	}
 	//Matrices.view = glm::lookAt(glm::vec3(-2,-2,3.2), glm::vec3(0,0,0), glm::vec3(0,1,1)); // Fixed camera for 2D (ortho) in XY plane
 
@@ -1160,7 +1332,7 @@ void draw ()
 	for ( int i = 0 ; i < 140 ; i++ )
 	{
 		Matrices.model = glm::mat4(1.0f);
-		Matrices.model *= Tile[i].T;
+		Matrices.model *= Tile[i].T*Tile[i].T1;
 		MVP = VP * Matrices.model;
 		glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
 		if ( Level1[(10*(Level-1))+(i/14)][i%14] == 1 || Level1[(10*(Level-1))+(i/14)][i%14] == 2 || Level1[(10*(Level-1))+(i/14)][i%14] == 4 )
@@ -1173,13 +1345,13 @@ void draw ()
 		activeswitch = !activeswitch;
 		if ( activeswitch )
 		{
-			Level1[24][5] = 1;
-			Level1[24][6] = 1;
+			Level1[24][7] = 1;
+			Level1[24][8] = 1;
 		}
 		else
 		{
-			Level1[24][5] = 0;
-			Level1[24][6] = 0;
+			Level1[24][7] = 0;
+			Level1[24][8] = 0;
 		}
 	}
 
@@ -1208,18 +1380,15 @@ void draw ()
 		}
 	}
 
-	if ( Level == 0 )
-		Level++;
-
-	if ( Level == 0 || Block.state == stand && Level1[10*(Level-1)+Block.y1][Block.x1] == 3 )
+	if ( Level == 0 || (Block.state == stand && Level1[10*(Level-1)+Block.y1][Block.x1] == 3 ))
 	{
-		if ( !Block.roundfinish )
+		if ( !Block.roundfinish && Level != 0)
 		{
 			time1 = glfwGetTime();
 			Block.roundfinish = true;
 			CheckBLockPos(true);
 		}
-		else if ( time2-time1 > 0.8 )
+		else if ( time2-time1 > 0.8 || Level == 0 )
 		{
 			Level++;
 			if ( Level == 1 )
@@ -1248,7 +1417,7 @@ void draw ()
 			else if ( Level == 3 )
 			{
 				t = 0;
-				xi = 2;
+				xi = 4;
 				yi = 5;
 				level = 3;
 				Block.roundfinish = false;
@@ -1344,7 +1513,14 @@ void initGL (GLFWwindow* window, int width, int height)
 			Tile[i].tile = createSwitch(0.5,0.5,0.2,0,0,0,Level1[(10*(level-1))+(i/14)][i%14]);
 		else
 			Tile[i].tile = createBoard(0.5,0.5,0.2,0,0,0,Level1[(10*(level-1))+(i/14)][i%14]);
+		Tile[i].depth = -(((i/14)+(i%14))/2);
 		Tile[i].T = glm::translate(glm::vec3(0.52*((i%14)-7),-0.52*((i/14)-5),0));
+		Tile[i].speed = ((i/14)+(i%14))/100;
+		Tile[i].T1[3][2] = 0;
+		Tile[i].x = rand()%8-4;
+		Tile[i].y = rand()%8-4;
+		Tile[i].T1[3][1] = 0;
+		Tile[i].T1[3][0] = 0;
 	}
 	createRectangle(1,0.5,0.5);
 
