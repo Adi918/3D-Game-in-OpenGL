@@ -1082,17 +1082,17 @@ void draw ()
 	{
 		y_rotate = 1;
 		x = 0.25;
-		Block.z = 0.25;
+		Block.z = 0.35;
 	}
 	else if ( Block.state == vertical )
 	{
-		Block.z = 0.25;
+		Block.z = 0.35;
 		y = 0.25;
 		z_rotate = 1;
 	}
 	else
 	{
-		Block.z = 0.5;
+		Block.z = 0.6;
 		x_rotate = 1;
 	}
 	// clear the color and depth in the frame buffer
