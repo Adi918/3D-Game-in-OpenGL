@@ -87,6 +87,7 @@ typedef struct Block
 block Block;
 tiles Tile[140];
 
+//Level1[24][5]
 
 int Level1[30][14] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -112,12 +113,12 @@ int Level1[30][14] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
+	0, 1, 1, 1, 1, 0, 0, 1, 3, 1, 0, 0, 0, 0, 
+	0, 1, 1, 4, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
+	0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
+	0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -890,6 +891,150 @@ VAO* createBoard (float width,float length, float height,float r, float g, float
 	}
 }
 
+VAO* createSwitch (float width,float length, float height,float r, float g, float b, float type)
+{
+	// GL3 accepts only Triangles. Quads are not supported
+	GLfloat vertex_buffer_data [] = {
+
+		-width/2,-length/2,-height/2, // vertex 1
+		width/2,-length/2,-height/2, // vertex 2
+		width/2, length/2,height/2, // vertex 3
+
+		width/2, length/2,-height/2, // vertex 3
+		-width/2, length/2,-height/2, // vertex 4
+		-width/2,-length/2,-height/2 , // vertex 1
+
+		width/2,length/2,-height/2,
+		-width/2,length/2,-height/2,  
+		-width/2,length/2,height/2,
+
+		-width/2,length/2,height/2,
+		width/2,length/2,height/2,
+		width/2,length/2,-height/2,
+
+		width/2,length/2,height/2,
+		width/2,length/2,-height/2,
+		width/2,-length/2,-height/2,
+
+		width/2,-length/2,-height/2,
+		width/2,-length/2,height/2,
+		width/2,length/2,height/2,
+
+
+
+		-width/2,-length/2,-height/2,
+		width/2,-length/2,-height/2,
+		width/2,-length/2,height/2,
+
+		width/2,-length/2,height/2,
+		-width/2,-length/2,height/2,
+		-width/2,-length/2,-height/2,
+
+		width/2,length/2,height/2,
+		width/2,-length/2,height/2,
+		-width/2,-length/2,height/2,
+
+		-width/2,-length/2,height/2,
+		-width/2,length/2,height/2,
+		width/2,length/2,height/2,
+
+		-width/2,-length/2,-height/2,
+		-width/2,length/2,-height/2, 
+		-width/2,length/2,height/2,
+
+		-width/2,length/2,height/2,
+		-width/2,-length/2,height/2,
+		-width/2,-length/2,-height/2,
+
+
+
+		-width/2+0.05,-length/2,height/2+0.01,
+		width/2,length/2-0.05,height/2+0.01,
+		width/2-0.05, length/2,height/2+0.01,
+
+		-width/2+0.05,-length/2,height/2+0.01,
+		width/2-0.05, length/2,height/2+0.01,
+		-width/2, -length/2+0.05, height/2+0.01,
+
+		-width/2+0.05,length/2,height/2+0.01,
+		width/2,-length/2+0.05,height/2+0.01,
+		width/2-0.05,-length/2,height/2+0.01,
+		
+		-width/2+0.05,length/2,height/2+0.01,
+		width/2-0.05,-length/2,height/2+0.01,
+		-width/2,length/2-0.05,height/2+0.01,
+	};
+
+	GLfloat color_buffer_data []={
+
+		0.7,0.1,0.2,
+		0.7,0.1,0.2,
+		0.7,0.1,0.2,
+
+		0.7,0.1,0.2,
+		0.7,0.1,0.2,
+		0.7,0.1,0.2,
+
+		0.5,0.5,0.4,
+		0.5,0.5,0.4,
+		0.5,0.5,0.4,
+
+		0.5,0.5,0.4,
+		0.5,0.5,0.4,
+		0.5,0.5,0.4,
+
+		0.6,0.4,0.2,
+		0.6,0.4,0.2,
+		0.6,0.4,0.2,
+
+		0.6,0.4,0.2,
+		0.6,0.4,0.2,
+		0.6,0.4,0.2,
+
+		0.6,0.2,0.1,
+		0.6,0.2,0.1,
+		0.6,0.2,0.1,
+
+		0.6,0.2,0.1,
+		0.6,0.2,0.1,
+		0.6,0.2,0.1,
+
+		0.7,0.7,0.1,
+		0.7,0.7,0.1,
+		0.7,0.7,0.1,
+
+		0.7,0.7,0.1,
+		0.7,0.7,0.1,
+		0.7,0.7,0.1,
+
+		0.4,0.4,0.4,
+		0.4,0.4,0.4,
+		0.4,0.4,0.4,
+
+		0.4,0.4,0.4,
+		0.4,0.4,0.4,
+		0.4,0.4,0.4,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+	};
+
+	return create3DObject(GL_TRIANGLES, 48, vertex_buffer_data, color_buffer_data, GL_FILL);
+}
+
 void CheckBLockPos ( bool var )
 {
 	if ( var || Level1[(10*(Level-1))+Block.y1][Block.x1] == 0 || Level1[(10*(Level-1))+Block.y2][Block.x2] == 0 )
@@ -914,6 +1059,8 @@ void ResetBlock ()
 	Block.y1 = yi;
 	Block.y2 = yi;
 	Block.state = stand;
+	Level1[24][5] = 0;
+	Level1[24][6] = 0;
 }
 
 float t = 0;
@@ -997,8 +1144,14 @@ void draw ()
 		Matrices.model *= Tile[i].T;
 		MVP = VP * Matrices.model;
 		glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-		if ( Level1[(10*(Level-1))+(i/14)][i%14] == 1 || Level1[(10*(Level-1))+(i/14)][i%14] == 2 )
+		if ( Level1[(10*(Level-1))+(i/14)][i%14] == 1 || Level1[(10*(Level-1))+(i/14)][i%14] == 2 || Level1[(10*(Level-1))+(i/14)][i%14] == 4 )
 			draw3DObject(Tile[i].tile);
+	}
+
+	if ( Level1[10*(Level-1)+Block.y1][Block.x1] == 4 && Block.state == stand )
+	{
+		Level1[24][5] = 1;
+		Level1[24][6] = 1;
 	}
 
 	if ( time2 - time1 > 1 && Block.fallingstatus )
@@ -1029,8 +1182,6 @@ void draw ()
 	if ( Level == 0 )
 		Level++;
 
-	cout << Block.T[3][2] << endl;
-
 	if ( Level == 0 || Block.state == stand && Level1[10*(Level-1)+Block.y1][Block.x1] == 3 )
 	{
 		if ( !Block.roundfinish )
@@ -1039,31 +1190,46 @@ void draw ()
 			Block.roundfinish = true;
 			CheckBLockPos(true);
 		}
-		if ( time2-time1 > 0.8 )
+		else if ( time2-time1 > 0.8 )
 		{
 			Level++;
 			if ( Level == 1 )
 			{
-				Level = 2;
 				t = 0;
 				xi = 3;
 				yi = 3;
 				Block.roundfinish = false;
 				time1 = glfwGetTime();
+				initGL(window,width,height);
 				ResetBlock();
 				BlockFall();
 			}
-			if ( Level == 2 )
+			else if ( Level == 2 )
 			{
 				t = 0;
 				xi = 2;
 				yi = 5;
 				level = 2;
+				Block.roundfinish = false;
 				time1 = glfwGetTime();
 				initGL(window,width,height);
 				ResetBlock();
 				BlockFall();
 			}
+			else if ( Level == 3 )
+			{
+				t = 0;
+				xi = 2;
+				yi = 5;
+				level = 3;
+				Block.roundfinish = false;
+				time1 = glfwGetTime();
+				initGL(window,width,height);
+				ResetBlock();
+				BlockFall();
+			}
+			else
+				glfwTerminate();
 		}
 	}
 
@@ -1145,7 +1311,10 @@ void initGL (GLFWwindow* window, int width, int height)
 	// Create the models
 	for ( int i = 0 ; i < 140 ; i++ )
 	{
-		Tile[i].tile = createBoard(0.5,0.5,0.2,0,0,0,Level1[(10*(level-1))+(i/14)][i%14]);
+		if ( Level1[(10*(level-1))+(i/14)][i%14] == 4 )
+			Tile[i].tile = createSwitch(0.5,0.5,0.2,0,0,0,Level1[(10*(level-1))+(i/14)][i%14]);
+		else
+			Tile[i].tile = createBoard(0.5,0.5,0.2,0,0,0,Level1[(10*(level-1))+(i/14)][i%14]);
 		Tile[i].T = glm::translate(glm::vec3(0.52*((i%14)-7),-0.52*((i/14)-5),0));
 	}
 	createRectangle(1,0.5,0.5);
