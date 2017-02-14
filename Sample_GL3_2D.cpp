@@ -20,11 +20,12 @@ glm::mat4 translateBlock;
 
 GLFWwindow* window; // window desciptor/handle
 
-int width = 600;
-int height = 600;
+int width = 1000;
+int height = 1000;
+int cameracount = 0;
 
 float camera_rotation_angle = 60;
-float camera_rotation_angle1 = 0;
+float camera_rotation_angle1 = 60;
 
 int Level=0;
 int level = 1;
@@ -44,6 +45,9 @@ struct VAO {
 	int NumVertices;
 };
 typedef struct VAO VAO;
+
+bool activeswitch=false;
+bool visibility=true;
 
 struct GLMatrices {
 	glm::mat4 projection;
@@ -94,7 +98,7 @@ int Level1[30][14] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 1, 1, 1, 2, 1, 1, 1, 1, 0, 0, 0, 
+	0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 
 	0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 1, 1, 3, 1, 1, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 
@@ -113,12 +117,12 @@ int Level1[30][14] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
-	0, 1, 1, 1, 1, 0, 0, 1, 3, 1, 0, 0, 0, 0, 
-	0, 1, 1, 4, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
-	0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
-	0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 
+	0, 2, 2, 2, 2, 0, 0, 1, 3, 1, 0, 0, 0, 0, 
+	0, 2, 1, 4, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
+	0, 2, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
+	0, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+	0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -325,6 +329,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 					Block.y1 -= 1;
 					Block.y2 -= 1;
 				}
+				visibility = true;
 				break;
 			case GLFW_KEY_DOWN:
 				if ( Block.state == stand )
@@ -344,6 +349,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 					Block.y1 += 1;
 					Block.y2 += 1;
 				}
+				visibility = true;
 				break;
 			case GLFW_KEY_LEFT:
 				if ( Block.state == stand )
@@ -363,6 +369,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 					Block.x1 -= 1;
 					Block.x2 -= 1;
 				}
+				visibility = true;
 				break;
 			case GLFW_KEY_RIGHT:
 				if ( Block.state == stand )
@@ -382,26 +389,10 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 					Block.x1 += 1;
 					Block.x2 += 1;
 				}
+				visibility = true;
 				break;
-			case GLFW_KEY_A:
-				if ( camera_rotation_angle < 90 )
-					camera_rotation_angle += 10;
-				break;
-			case GLFW_KEY_D:
-				if ( camera_rotation_angle > 30 )
-					camera_rotation_angle -= 10;
-				break;
-			case GLFW_KEY_W:
-				if ( camera_rotation_angle1 < 30 )
-					camera_rotation_angle1 += 10;
-				break;
-			case GLFW_KEY_S:
-				if ( camera_rotation_angle1 > -30 )
-					camera_rotation_angle1 -= 10;
-				break;
-			case GLFW_KEY_R:
-				camera_rotation_angle = 60;
-				camera_rotation_angle1 = 60;
+			case GLFW_KEY_C:
+				cameracount += 1;
 				break;
 			default:
 				break;
@@ -531,17 +522,17 @@ void scroll_callback ( GLFWwindow* window, double xoffset, double yoffset )
 	CheckBLockPos(false);
 }
 
+int fbwidth=width, fbheight=height;
+GLfloat fov = 90.0f;
 
 /* Executed when window is resized to 'width' and 'height' */
 /* Modify the bounds of the screen here in glm::ortho or Field of View in glm::Perspective */
 void reshapeWindow (GLFWwindow* window, int width, int height)
 {
-	int fbwidth=width, fbheight=height;
 	/* With Retina display on Mac OS X, GLFW's FramebufferSize
 	   is different from WindowSize */
 	glfwGetFramebufferSize(window, &fbwidth, &fbheight);
 
-	GLfloat fov = 90.0f;
 
 	// sets the viewport of openGL renderer
 	glViewport (0, 0, (GLsizei) fbwidth, (GLsizei) fbheight);
@@ -552,10 +543,6 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
 	   gluPerspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1, 500.0); */
 	// Store the projection matrix in a variable for future use
 	// Perspective projection for 3D views
-	// Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
-
-	// Ortho projection for 2D views
-	Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
 }
 
 
@@ -1086,6 +1073,7 @@ void BlockFall ( int i )
 /* Edit this function according to your assignment */
 void draw ()
 {
+	camera_rotation_angle++;
 	t+=0.05;
 	time2 = glfwGetTime();
 	float x_rotate=0, y_rotate=0, z_rotate=0;
@@ -1114,17 +1102,48 @@ void draw ()
 	// Don't change unless you know what you are doing
 	glUseProgram (programID);
 
-	// Eye - Location of camera. Don't change unless you are sure!!
-	glm::vec3 eye ( -5*cos(camera_rotation_angle*M_PI/180.0f), -5*sin(camera_rotation_angle*M_PI/180.0f)*cos(camera_rotation_angle1*M_PI/180.0f), 3.2*(1+sin(camera_rotation_angle*M_PI/180.0f)*sin(camera_rotation_angle1*M_PI/180.0f)) );
-	// Target - Where is the camera looking at.  Don't change unless you are sure!!
-	glm::vec3 target (0, 0, 0);
-	// Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
 	glm::vec3 up (0, 0, 1);
+	// Eye - Location of camera. Don't change unless you are sure!!
 
-	// Compute Camera matrix (view)
-	// Matrices.view = glm::lookAt( eye, target, up ); // Rotating Camera for 3D
-	//  Don't change unless you are sure!!
-	Matrices.view = glm::lookAt(eye, target, up); // Fixed camera for 2D (ortho) in XY plane
+	// Tower View
+	if ( cameracount%4 == 0 )
+	{
+		glm::vec3 eye ( -4, -4, 4);
+		glm::vec3 target (0, 0, 0);
+		Matrices.view = glm::lookAt(eye, target, up);
+		Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
+	}
+	// Helicopter View
+	else if ( cameracount%4 == 1 )
+	{
+		float r = 4;
+		float angle = 40;
+		glm::vec3 eye (r*sin(angle*M_PI/180)*cos(camera_rotation_angle*M_PI/180),r*sin(angle*M_PI/180)*sin(camera_rotation_angle*M_PI/180),r*cos(angle*M_PI/180));
+		glm::vec3 target (0, 0, 0);
+		Matrices.view = glm::lookAt(eye, target, up);
+//		Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
+		Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
+	}
+	// Top View
+	else if ( cameracount%4 == 2 )
+	{
+		glm::vec3 eye ( 0, 0, 3);
+		glm::vec3 up (0,1,0);
+		glm::vec3 target (0, 0, 0);
+		Matrices.view = glm::lookAt(eye, target, up);
+		Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
+
+	}
+	// 3rd Person
+	else if ( cameracount%4 == 3 )
+	{
+		glm::vec3 eye (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5),(Block.fallingstatus*Block.speed*(time2-time1))-(Block.roundfinish*Block.speed*(time2-time1))+3);
+		glm::vec3 target (x+0.52*(Block.x1-7),y-0.52*(Block.y1-5)+2, 0);
+		Matrices.view = glm::lookAt(eye, target, up);
+//		Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
+		Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
+
+	}
 	//Matrices.view = glm::lookAt(glm::vec3(-2,-2,3.2), glm::vec3(0,0,0), glm::vec3(0,1,1)); // Fixed camera for 2D (ortho) in XY plane
 
 	// Compute ViewProject matrix as view/camera might not be changed for this frame (basic scenario)
@@ -1148,10 +1167,20 @@ void draw ()
 			draw3DObject(Tile[i].tile);
 	}
 
-	if ( Level1[10*(Level-1)+Block.y1][Block.x1] == 4 && Block.state == stand )
+	if ( Level1[10*(Level-1)+Block.y1][Block.x1] == 4 && Block.state == stand && visibility )
 	{
-		Level1[24][5] = 1;
-		Level1[24][6] = 1;
+		visibility = false;
+		activeswitch = !activeswitch;
+		if ( activeswitch )
+		{
+			Level1[24][5] = 1;
+			Level1[24][6] = 1;
+		}
+		else
+		{
+			Level1[24][5] = 0;
+			Level1[24][6] = 0;
+		}
 	}
 
 	if ( time2 - time1 > 1 && Block.fallingstatus )
