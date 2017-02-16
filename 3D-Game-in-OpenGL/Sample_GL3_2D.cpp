@@ -24,8 +24,10 @@ int width = 1000;
 int height = 1000;
 int cameracount = 0;
 
-float camera_rotation_angle = 60;
-float camera_rotation_angle1 = 60;
+float camera_rotation_angle = 270;
+float camera_rotation_angle1 = 40;
+
+bool toggle_mouse_controls = false;
 
 int Level=0;
 int level = 1;
@@ -65,6 +67,7 @@ typedef struct Tiles
 	glm::mat4 T1;
 	float x;
 	float y;
+	float z;
 	int type;
 	float speed;
 	bool state;
@@ -74,6 +77,7 @@ typedef struct Tiles
 typedef struct Block
 {
 	struct VAO* block;
+	struct VAO* frame;
 	glm::mat4 T;
 	int x1;
 	int x2;
@@ -318,6 +322,7 @@ bool rectangle_rot_status = true;
 
 void up ()
 {
+	system("aplay Move.wav &");
 	Left = 0;
 	Right = 0;
 	Up = 1;
@@ -344,6 +349,7 @@ void up ()
 
 void down ()
 {
+	system("aplay Move.wav &");
 	Left = 0;
 	Right = 0;
 	Up = 0;
@@ -370,6 +376,7 @@ void down ()
 
 void left ()
 {
+	system("aplay Move.wav &");
 	Left = 1;
 	Right = 0;
 	Up = 0;
@@ -397,6 +404,7 @@ void left ()
 
 void right ()
 {
+	system("aplay Move.wav &");
 	Left = 0;
 	Right = 1;
 	Up = 0;
@@ -493,6 +501,8 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 			case GLFW_KEY_C:
 				cameracount += 1;
 				break;
+			case GLFW_KEY_M:
+				toggle_mouse_controls = !toggle_mouse_controls;
 			default:
 				break;
 		}
@@ -533,84 +543,108 @@ void keyboardChar (GLFWwindow* window, unsigned int key)
 /* Executed when a mouse button is pressed/released */
 void mouseButton (GLFWwindow* window, int button, int action, int mods)
 {
-	switch (button) {
-		case GLFW_MOUSE_BUTTON_LEFT:
-			if (action == GLFW_RELEASE)
-			{
-				if ( !person )
-					left();
-				else
+	if ( toggle_mouse_controls )
+	{
+		switch (button) {
+			case GLFW_MOUSE_BUTTON_LEFT:
+				if (action == GLFW_RELEASE)
 				{
-					if ( Right )
-						up();
-					else if ( Left )
-						down();
-					else if ( Down )
-						right();
-					else
-						left();
-				}
-			}
-			break;
-		case GLFW_MOUSE_BUTTON_RIGHT:
-			if (action == GLFW_RELEASE)
-			{
-				if ( !person )
-					right();
-				else
-				{
-					if ( Right )
-						down();
-					else if ( Left )
-						up();
-					else if ( Down )
+					if ( !person )
 						left();
 					else
-						right();
+					{
+						if ( Right )
+							up();
+						else if ( Left )
+							down();
+						else if ( Down )
+							right();
+						else
+							left();
+					}
 				}
-			}
-			break;
-		default:
-			break;
-	}
+				break;
+			case GLFW_MOUSE_BUTTON_RIGHT:
+				if (action == GLFW_RELEASE)
+				{
+					if ( !person )
+						right();
+					else
+					{
+						if ( Right )
+							down();
+						else if ( Left )
+							up();
+						else if ( Down )
+							left();
+						else
+							right();
+					}
+				}
+				break;
+			default:
+				break;
+		}
 	CheckBLockPos(false);
+	}
+	else
+	{
+		switch(button) {
+			case GLFW_MOUSE_BUTTON_LEFT:
+				if ( action == GLFW_RELEASE )
+					camera_rotation_angle -= 2;
+				break;
+			case GLFW_MOUSE_BUTTON_RIGHT:
+				if ( action == GLFW_RELEASE )
+					camera_rotation_angle += 2;
+				break;
+		}
+	}
 }
 
 void scroll_callback ( GLFWwindow* window, double xoffset, double yoffset )
 {
-	if ( yoffset > 0 )
+	if ( toggle_mouse_controls )
 	{
-		if ( !person )
-			up();
-		else
+		if ( yoffset > 0 )
 		{
-			if ( Right == 1 )
-				right();
-			else if ( Left == 1 )
-				left();
-			else if ( Down == 1 )
-				down();
-			else
-				up();
-		}
-	}
-	else if ( yoffset < 0 )
-	{
-		if ( !person )
-			down();
-		else
-		{
-			if ( Right )
-				left();
-			else if ( Left )
-				right();
-			else if ( Down )
+			if ( !person )
 				up();
 			else
-				down();
+			{
+				if ( Right == 1 )
+					right();
+				else if ( Left == 1 )
+					left();
+				else if ( Down == 1 )
+					down();
+				else
+					up();
+			}
 		}
+		else if ( yoffset < 0 )
+		{
+			if ( !person )
+				down();
+			else
+			{
+				if ( Right )
+					left();
+				else if ( Left )
+					right();
+				else if ( Down )
+					up();
+				else
+					down();
+			}
+		}
+		CheckBLockPos(false);
 	}
-	CheckBLockPos(false);
+	else
+	{
+		camera_rotation_angle += 5*xoffset;
+		camera_rotation_angle1 += 5*yoffset;
+	}
 }
 
 int fbwidth=width, fbheight=height;
@@ -751,17 +785,69 @@ void createRectangle (float width,float length, float height)
 		0.1,0.7,0.7,
 		0.1,0.7,0.7,
 
-		0,0,0,
-		0,0,0,
-		0,0,0,
-
-		0,0,0,
-		0,0,0,
-		0,0,0,
 	};
 
-	//create3DObject creates and returns a handle to a VAO that can be used later
-	Block.block = create3DObject(GL_TRIANGLES, 42, vertex_buffer_data, color_buffer_data, GL_FILL);
+	static const GLfloat color_buffer_data1 [] = {
+		// front
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		//back
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		//left
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		//right
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		// base
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		// top
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+	};
+
+	//Create3DObject creates and returns a handle to a VAO that can be used later
+	Block.block = create3DObject(GL_TRIANGLES, 36, vertex_buffer_data, color_buffer_data, GL_FILL);
+
+	Block.frame = create3DObject(GL_TRIANGLES, 36, vertex_buffer_data, color_buffer_data1, GL_LINE);
 }
 
 VAO* createBoard (float width,float length, float height,float r, float g, float b, float type)
@@ -1163,21 +1249,23 @@ void BlockFall ()
 	if ( 6 *cos(1*t) > 0.1 )
 	{
 		Block.T[3][2] = 4*cos(1*t);
-		for ( int i = 0 ; i < 100 ; i++ )
+		for ( int i = 0 ; i < 140 ; i++ )
 		{
 			Tile[i].T[3][2] = Tile[i].depth*cos(t);
 			Tile[i].T1[3][0] = Tile[i].x*cos(t);
 			Tile[i].T1[3][1] = Tile[i].y*cos(t);
+			Tile[i].T1[3][2] = Tile[i].z*cos(t);
 		}
 	}
 	else
 	{
 		Block.T[3][2] = 0;
-		for ( int i = 0 ; i < 100 ; i++ )
+		for ( int i = 0 ; i < 140 ; i++ )
 		{
 			Tile[i].T[3][2] = 0;
 			Tile[i].T1[3][0] = 0;
 			Tile[i].T1[3][1] = 0;
+			Tile[i].T1[3][2] = 0;
 		}
 	}
 }
@@ -1239,8 +1327,7 @@ void draw ()
 	{
 		person = false;
 		float r = 8;
-		float angle = 40;
-		glm::vec3 eye (r*sin(angle*M_PI/180)*cos(camera_rotation_angle*M_PI/180),r*sin(angle*M_PI/180)*sin(camera_rotation_angle*M_PI/180),r*cos(angle*M_PI/180));
+		glm::vec3 eye (r*sin(camera_rotation_angle1*M_PI/180)*cos(camera_rotation_angle*M_PI/180),r*sin(camera_rotation_angle1*M_PI/180)*sin(camera_rotation_angle*M_PI/180),r*cos(camera_rotation_angle1*M_PI/180));
 		glm::vec3 target (0, 0, 0);
 		Matrices.view = glm::lookAt(eye, target, up);
 		//		Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
@@ -1390,6 +1477,7 @@ void draw ()
 		}
 		else if ( time2-time1 > 0.8 || Level == 0 )
 		{
+			system("aplay RoundStart.wav &");
 			Level++;
 			if ( Level == 1 )
 			{
@@ -1450,6 +1538,7 @@ void draw ()
 	MVP = VP * Matrices.model;
 	glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
 	draw3DObject(Block.block);
+	draw3DObject(Block.frame);
 }
 
 /* Initialise glfw window, I/O callbacks and the renderer to use */
@@ -1517,8 +1606,9 @@ void initGL (GLFWwindow* window, int width, int height)
 		Tile[i].T = glm::translate(glm::vec3(0.52*((i%14)-7),-0.52*((i/14)-5),0));
 		Tile[i].speed = ((i/14)+(i%14))/100;
 		Tile[i].T1[3][2] = 0;
-		Tile[i].x = rand()%8-4;
-		Tile[i].y = rand()%8-4;
+		Tile[i].x = (rand()%8)-4;
+		Tile[i].y = (rand()%8)-4;
+		Tile[i].z = (rand()%8)-4;
 		Tile[i].T1[3][1] = 0;
 		Tile[i].T1[3][0] = 0;
 	}
@@ -1540,10 +1630,10 @@ void initGL (GLFWwindow* window, int width, int height)
 	glEnable(GL_MULTISAMPLE);
 	glDepthFunc (GL_LEQUAL);
 
-	cout << "VENDOR: " << glGetString(GL_VENDOR) << endl;
-	cout << "RENDERER: " << glGetString(GL_RENDERER) << endl;
-	cout << "VERSION: " << glGetString(GL_VERSION) << endl;
-	cout << "GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+//	cout << "VENDOR: " << glGetString(GL_VENDOR) << endl;
+//	cout << "RENDERER: " << glGetString(GL_RENDERER) << endl;
+//	cout << "VERSION: " << glGetString(GL_VERSION) << endl;
+//	cout << "GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
 }
 
 int main (int argc, char** argv)
@@ -1562,6 +1652,13 @@ int main (int argc, char** argv)
 	initGL (window, width, height);
 
 	double last_update_time = glfwGetTime(), current_time;
+
+	cout << endl << endl << endl << endl << endl << endl << "Controls :" << endl << "M : Toggle Mouse controls and Camera View in Helicopter Mode" << endl << "Arrow Keys : For controlling the Block" << endl << "C : Toggle Camera Views" << endl << endl;
+	cout << "Instructions :" << endl << "Your target is to take the control to the Block and make it fall in the square hole to progress to the next level" << endl;
+	cout << "There are three different type of Blocks -" << endl;
+	cout << "\t1. Yellow Colour : Normal Block" << endl;
+	cout << "\t2. Black Colour : These blocks are fragile and block cannot stand on it" << endl;
+	cout << "\t3. Crossed Tile : These tiles are switches for bridges that gets toggles when the block stands on it" << endl << endl << endl << endl << endl << endl << endl;
 
 
 
