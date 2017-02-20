@@ -1313,6 +1313,16 @@ void draw ()
 	glm::vec3 up (0, 0, 1);
 	// Eye - Location of camera. Don't change unless you are sure!!
 
+	if ( Block.roundfinish )
+	{
+		for ( int i = 0 ; i < 140 ; i++ )
+		{
+			Tile[i].T1[3][0] = 2*Tile[i].x*sin(t);
+			Tile[i].T1[3][1] = 2*Tile[i].y*sin(t);
+			Tile[i].T1[3][2] = 2*Tile[i].z*sin(t);
+		}
+	}
+
 	// Tower View
 	if ( cameracount%5 == 0 )
 	{
@@ -1555,7 +1565,7 @@ GLFWwindow* initGLFW (int width, int height)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_SAMPLES, 64);
+	glfwWindowHint(GLFW_SAMPLES, 32);
 
 	window = glfwCreateWindow(width, height, "Sample OpenGL 3.3 Application", NULL, NULL);
 
